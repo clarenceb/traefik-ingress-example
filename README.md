@@ -179,6 +179,7 @@ Reloading the sample app in the browser should now prompt you for a username and
 kubectl get pods -n kube-system
 # traefik-847d6b54f9-x5btx
 kubectl logs traefik-847d6b54f9-x5btx -n kube-system
+```
 
 ### Resources
 
