@@ -3,9 +3,9 @@ Traefik Ingress
 
 Demo using Traefik ingress in AKS.
 
-Assumes:
-- Path based routing for a single domain (shouldn't be too hard to extend this sample)
-- Tested with Ubuntu (WSL2 on Windows 10) -- some adjustments may be needed for other platforms
+Assumptions:
+- Path based routing for a single domain (shouldn't be too hard to extend this sample to handle multiple domains)
+- Tested with Ubuntu (WSL2 on Windows 10) -- some adjustments to commands may be needed for other platforms
 
 Also shows:
 - TLS using Let's Encrypt certificates
@@ -18,19 +18,20 @@ Steps
 
 Follow these steps to create an AKS cluster: https://docs.microsoft.com/en-us/azure/aks/kubernetes-walkthrough
 
-***TL;DR steps:**
+**TL;DR steps:**
 
 ```sh
 RESOURCE_GROUP=<myresourcegroup>
 LOCATION=australiaeast
 ACR_NAME=<myacrname>
 CLUSTER_NAME=traefikdemo
+AKS_VERSION=1.14.8
 
 az group create -n ${RESOURCE_GROUP} -l ${LOCATION}
 az acr create -g ${RESOURCE_GROUP} -n ${ACR_NAME} --sku Basic
 ACR_ID=$(az acr show -g ${RESOURCE_GROUP} -n ${ACR_NAME} --query id -o tsv)
 
-az aks create -g ${RESOURCE_GROUP} -n ${CLUSTER_NAME} -c 3 -k 1.14.8 --vm-set-type VirtualMachineScaleSets --load-balancer-sku standard --attach-acr ${ACR_ID} -a monitoring --generate-ssh-keys
+az aks create -g ${RESOURCE_GROUP} -n ${CLUSTER_NAME} -c 3 -k ${AKS_VERSION} --vm-set-type VirtualMachineScaleSets --load-balancer-sku standard --attach-acr ${ACR_ID} -a monitoring --generate-ssh-keys
 
 sudo az aks install-cli # if you don't have `kubectl` installed
 az aks get-credentials -g ${RESOURCE_GROUP} -n ${CLUSTER_NAME}
