@@ -1,11 +1,12 @@
-Traefik Ingress
-===============
+Traefik Ingress Example
+=======================
 
-Demo using Traefik ingress in AKS.
+Demo using the Traefik ingress controller in AKS.
 
 Assumptions:
 - Path based routing for a single domain (shouldn't be too hard to extend this sample to handle multiple domains)
-- Tested with Ubuntu (WSL2 on Windows 10) -- some adjustments to commands may be needed for other platforms
+- Steps shown here are Azure-centric but Traefik works in any Kubernetes cluster
+- Tested in Bash on Ubuntu (WSL2 on Windows 10) -- some adjustments to commands may be needed for other platforms
 
 Also shows:
 - TLS using Let's Encrypt certificates
@@ -26,12 +27,22 @@ LOCATION=australiaeast
 ACR_NAME=<myacrname>
 CLUSTER_NAME=traefikdemo
 AKS_VERSION=1.14.8
+NODE_COUNT=3
 
 az group create -n ${RESOURCE_GROUP} -l ${LOCATION}
 az acr create -g ${RESOURCE_GROUP} -n ${ACR_NAME} --sku Basic
 ACR_ID=$(az acr show -g ${RESOURCE_GROUP} -n ${ACR_NAME} --query id -o tsv)
 
-az aks create -g ${RESOURCE_GROUP} -n ${CLUSTER_NAME} -c 3 -k ${AKS_VERSION} --vm-set-type VirtualMachineScaleSets --load-balancer-sku standard --attach-acr ${ACR_ID} -a monitoring --generate-ssh-keys
+az aks create \
+  -g ${RESOURCE_GROUP} \
+  -n ${CLUSTER_NAME} \
+  -c ${NODE_COUNT} \
+  -k ${AKS_VERSION} \
+  --vm-set-type VirtualMachineScaleSets \
+  --load-balancer-sku standard \
+  --attach-acr ${ACR_ID} \
+  -a monitoring \
+  --generate-ssh-keys
 
 sudo az aks install-cli # if you don't have `kubectl` installed
 az aks get-credentials -g ${RESOURCE_GROUP} -n ${CLUSTER_NAME}
@@ -59,13 +70,13 @@ sudo mv linux-amd64/helm /usr/local/bin/helm3  # assumes Linux or WSL on Windows
 sudo chmod +x /usr/local/bin/helm3
 ```
 
-Install Traefik Ingress chart:
+Edit the field `acme.email` in the file `traefik-values.yaml` with a valid email address (or override the value with `--set acme.email=your@email.com` on the `helm3 install` commandline).
 
+Now, install the Traefik Ingress chart:
 
 ```sh
 helm3 repo add stable https://kubernetes-charts.storage.googleapis.com/
 helm3 repo update
-# First, update acme.email with a valid email address in traefik-values.yaml
 helm3 install traefik-ingress stable/traefik -n kube-system --values traefik-values.yaml
 # Wait for the external IP to be assigned by watching the traefik service (CTRL+C to exit)
 kubectl get svc traefik -n kube-system -w
@@ -116,11 +127,16 @@ az network public-ip show --ids $PUBLICIPID --query dnsSettings.fqdn -o tsv
 # DNSNAME.LOCATION.cloudapp.azure.com
 ```
 
+Update the host field in the Ingress resource of `azure-vote-app.yaml` to match your Traefik public IP FQDN retrieve above:
+
+```yaml
+  host: <DNSNAME>.<LOCATION>.cloudapp.azure.com
+```
+
 Now deploy the sample app resources:
 
 ```sh
 kubectl create ns azure-vote
-# First, update the host in the Ingress resource of azure-vote-app.yaml to your Traefik public IP FQDN: <DNSNAME>.<LOCATION>.cloudapp.azure.com
 kubectl apply -f azure-vote-app.yaml -n azure-vote
 ```
 
@@ -155,7 +171,7 @@ Uncomment the following lines in the `Ingress` resource of `azure-vote-app.yaml`
     # ingress.kubernetes.io/auth-secret: mysecret
 ```
 
-should look like:
+so that it looks like:
 
 ```yaml
   annotations:
@@ -183,7 +199,7 @@ kubectl get pods -n kube-system
 kubectl logs traefik-847d6b54f9-x5btx -n kube-system
 ```
 
-### Resources
+### Resources / Credits
 
 * https://github.com/helm/charts/tree/master/stable/traefik
 * https://docs.microsoft.com/en-us/azure/dev-spaces/how-to/ingress-https-traefik
