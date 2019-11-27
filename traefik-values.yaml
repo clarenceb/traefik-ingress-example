@@ -1,0 +1,46 @@
+fullnameOverride: traefik
+replicas: 1
+resources:
+  limits:
+    cpu: 500m
+    memory: 500Mi
+  requests:
+    cpu: 100m
+    memory: 200Mi
+externalTrafficPolicy: Local
+kubernetes:
+  ingressClass: traefik
+  ingressEndpoint:
+    useDefaultPublishedService: true
+dashboard:
+  enabled: false
+debug:
+  enabled: false
+accessLogs:
+  enabled: true
+  fields:
+    defaultMode: keep
+    headers:
+      defaultMode: keep
+      names:
+        Authorization: redact
+rbac:
+  enabled: true
+acme:
+  enabled: true
+  email: "<a-valid-email@yourdomain.com>"
+  staging: false
+  challengeType: tls-alpn-01
+ssl:
+  enabled: true
+  enforced: true
+  permanentRedirect: true
+  tlsMinVersion: VersionTLS12
+  cipherSuites:
+    - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+    - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+    - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+    - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+    - TLS_RSA_WITH_AES_128_GCM_SHA256
+    - TLS_RSA_WITH_AES_256_GCM_SHA384
+    - TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
