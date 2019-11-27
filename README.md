@@ -148,7 +148,7 @@ kubectl get all -n azure-vote
 
 Browse to: https://DNSNAME.LOCATION.cloudapp.azure.com
 
-The TLS certificate should be valid in your browser.azu
+The TLS certificate should be valid in your browser.
 
 ### Adding basic auth to the sample app
 
