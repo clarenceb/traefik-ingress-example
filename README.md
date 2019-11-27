@@ -5,6 +5,7 @@ Demo using Traefik ingress in AKS.
 
 Assumes:
 - Path based routing for a single domain (shouldn't be too hard to extend this sample)
+- Tested with Ubuntu (WSL2 on Windows 10) -- some adjustments may be needed for other platforms
 
 Also shows:
 - TLS using Let's Encrypt certificates
