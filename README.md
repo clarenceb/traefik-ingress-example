@@ -26,7 +26,7 @@ RESOURCE_GROUP=<myresourcegroup>
 LOCATION=australiaeast
 ACR_NAME=<myacrname>
 CLUSTER_NAME=traefikdemo
-AKS_VERSION=1.14.8
+AKS_VERSION=1.19.9
 NODE_COUNT=3
 
 az group create -n ${RESOURCE_GROUP} -l ${LOCATION}
@@ -38,8 +38,6 @@ az aks create \
   -n ${CLUSTER_NAME} \
   -c ${NODE_COUNT} \
   -k ${AKS_VERSION} \
-  --vm-set-type VirtualMachineScaleSets \
-  --load-balancer-sku standard \
   --attach-acr ${ACR_ID} \
   -a monitoring \
   --generate-ssh-keys
@@ -50,34 +48,24 @@ az aks get-credentials -g ${RESOURCE_GROUP} -n ${CLUSTER_NAME}
 
 ### Install Traefik via Helm into the cluster
 
-**Install Helm v3**
+**Install Helm**
 
-See: https://v3.helm.sh/docs/intro/install/
+See: https://helm.sh/docs/intro/install/
 
 ```sh
-curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 > get_helm.sh
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
 chmod 700 get_helm.sh
 ./get_helm.sh
 ```
 
-Or to use Helm3 side-by-side with Helm v2:
-
-```sh
-# See https://github.com/helm/helm/releases for latest release
-curl https://get.helm.sh/helm-v3.0.0-linux-amd64.tar.gz -o helm3.tgz
-tar xvf helm3.tgz
-sudo mv linux-amd64/helm /usr/local/bin/helm3  # assumes Linux or WSL on Windows
-sudo chmod +x /usr/local/bin/helm3
-```
-
-Edit the field `acme.email` in the file `traefik-values.yaml` with a valid email address (or override the value with `--set acme.email=your@email.com` on the `helm3 install` commandline).
+Edit the field `acme.email` in the file `traefik-values.yaml` with a valid email address (or override the value with `--set acme.email=your@email.com` on the `helm install` commandline).
 
 Now, install the Traefik Ingress chart:
 
 ```sh
-helm3 repo add stable https://kubernetes-charts.storage.googleapis.com/
-helm3 repo update
-helm3 install traefik-ingress stable/traefik -n kube-system --values traefik-values.yaml
+helm repo add stable https://kubernetes-charts.storage.googleapis.com/
+helm repo update
+helm install traefik-ingress stable/traefik -n kube-system --values traefik-values.yaml
 # Wait for the external IP to be assigned by watching the traefik service (CTRL+C to exit)
 kubectl get svc traefik -n kube-system -w
 # Wait for the traefik pod to be 'Running' (CTRL+C to exit)
@@ -87,7 +75,7 @@ kubectl get pod -n kube-system -w
 If you want to update any of the values for Traefik, edit the file `traefik-values.yaml` and run a helm upgrade:
 
 ```sh
-helm3 upgrade traefik-ingress stable/traefik -n kube-system --values traefik-values.yaml
+helm upgrade traefik-ingress stable/traefik -n kube-system --values traefik-values.yaml
 ```
 
 See the Traefik helm chart [configuration](https://github.com/helm/charts/tree/master/stable/traefik#configuration) for explanation of options.
@@ -209,6 +197,3 @@ kubectl logs traefik-847d6b54f9-x5btx -n kube-system
 * https://kubernetes.io/docs/concepts/services-networking/ingress/
 * https://docs.traefik.io/v1.5/configuration/backends/kubernetes/#annotations
 * https://kubernetes.github.io/ingress-nginx/examples/auth/basic/
-
-
-
